@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import seaborn as sns
 import folium
 
@@ -52,6 +53,9 @@ plt.plot(daily.index, daily.values, marker="o", color="blue")
 plt.title("BookNook — Daily Revenue")
 plt.xlabel("Date")
 plt.ylabel("Revenue ($)")
+ax = plt.gca()
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+ax.xaxis.set_major_locator(mdates.DayLocator())
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
@@ -63,6 +67,9 @@ plt.plot(daily_cumulative.index, daily_cumulative.values, color="blue", linewidt
 plt.title("BookNook — Cumulative Revenue")
 plt.xlabel("Date")
 plt.ylabel("Total Revenue So Far ($)")
+ax = plt.gca()
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+ax.xaxis.set_major_locator(mdates.DayLocator())
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
@@ -151,40 +158,4 @@ plt.figure(figsize=(8, 5))
 sns.scatterplot(data=df, x="unit_price", y="quantity", hue="category", s=60, alpha=0.6)
 plt.title("BookNook — Quantity vs Price, Colored by Category")
 plt.xlabel("Unit Price ($)")
-plt.ylabel("Quantity")
-plt.tight_layout()
 plt.show()
-
-# --- Task 3.2: Folium map of customer cities ---
-city_query = "SELECT city, COUNT(*) AS n FROM customers GROUP BY city;"
-city_counts = pd.read_sql(city_query, engine)
-print(city_counts)
-
-city_coords = {
-    "Islamabad":  (33.6844, 73.0479),
-    "Lahore":     (31.5497, 74.3436),
-    "Karachi":    (24.8607, 67.0011),
-    "Rawalpindi": (33.5651, 73.0169),
-    "Peshawar":   (34.0151, 71.5249),
-    "Multan":     (30.1575, 71.5249),
-}
-
-m = folium.Map(location=[30.3753, 69.3451], zoom_start=5)
-
-for _, row in city_counts.iterrows():
-    city = row["city"]
-    count = row["n"]
-    if city in city_coords:
-        lat, lon = city_coords[city]
-        folium.CircleMarker(
-            location=[lat, lon],
-            radius=5 + count * 2,
-            popup=f"{city}: {count} customers",
-            color="#1F4E79",
-            fill=True,
-            fill_color="#2E75B6",
-            fill_opacity=0.7,
-        ).add_to(m)
-
-m.save("booknook_customer_map.html")
-print("Map saved to booknook_customer_map.html")
